@@ -13,7 +13,8 @@ window.addEventListener('load', () => {
   const provider = new WebrtcProvider('yjs-ace', ydoc)
 
   // or use y-websocket
-  // const provider = new WebsocketProvider('wss://demos.yjs.dev', 'ace-demo', ydoc)
+  // const provider = new WebsocketProvider('wss://demos.yjs.dev', 'ace-demo', ydoc) // remote
+  // const provider = new WebsocketProvider('ws://localhost:1234', 'ace-demo', ydoc) // local
   // provider.on('status', event => {
   //   console.log(event.status) // websocket logs "connected" or "disconnected"
   // })
