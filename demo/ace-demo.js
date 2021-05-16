@@ -4,9 +4,9 @@ import * as Y from 'yjs'
 import { WebrtcProvider } from 'y-webrtc'
 import { WebsocketProvider } from 'y-websocket'
 import { AceBinding } from 'y-ace'
-import Ace from 'ace-builds/src-noconflict/ace'
-import 'ace-builds/src-noconflict/mode-javascript'
-import 'ace-builds/src-noconflict/theme-monokai'
+import Ace from 'ace-builds/src-min-noconflict/ace'
+import 'ace-builds/src-min-noconflict/mode-javascript'
+import 'ace-builds/src-min-noconflict/theme-monokai'
 
 window.addEventListener('load', () => {
   const ydoc = new Y.Doc()
