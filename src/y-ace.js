@@ -9,101 +9,118 @@ import Ace from 'ace-builds/src-min-noconflict/ace'
 const Range = Ace.require('ace/range').Range
 
 
-// ace cursors + user flags
-let marker = {}
-let markerID = {}
-marker.cursors = []
-marker.update = function(html, markerLayer, session, config) {
-  let start = config.firstRow, end = config.lastRow
-  let cursors = this.cursors
-  for (let i = 0; i < cursors.length; i++) {
-    let pos = this.cursors[i]
-    if (pos.row < start) {
-      continue
-    } else if (pos.row > end) {
-      break
-    } else {
-      // compute cursor position on screen
-      // this code is based on ace/layer/marker.js
-      let screenPos = session.documentToScreenPosition(pos.row, pos.column)
-      let aceGutter = document.getElementsByClassName('ace_gutter')[0].offsetWidth
-      let height = config.lineHeight
-      let width = config.characterWidth
-      let top = markerLayer.$getTop(screenPos.row, config)
-      let left = markerLayer.$padding + aceGutter + screenPos.column * width
+/*
+  AceCursors // cc teddavis.org 2021
+  Small class for tracking cursors/selection in Ace Editor
+ */
+class AceCursors{
+  constructor(ace){
+    this.ace = ace
+    this.marker = {}
+    this.marker.self = this
+    this.markerID = {}
+    this.marker.cursors = []
+    this.aceID = this.ace.container.id
 
-      // update if exists + rebuild on textsize change
-      let el = document.getElementById('cursor_' + pos.id)
-      if(el == undefined){
-        el = document.createElement('div')
-        el.id = 'cursor_' + pos.id
-        el.className = 'cursor'
-        el.style.position = 'absolute'
-        el.innerHTML = '<div class="cursor-label" style="background: '+pos.color+';top: -1.8em;white-space: nowrap;">'+pos.name+'</div>'
-        document.getElementById('editor').appendChild(el)
-      }else{
-        el.style.height = height + 'px'
-        el.style.width = width + 'px'
-        el.style.top = top + 'px'
-        el.style.left = left + 'px'
-        el.style.borderLeft = '2px solid ' + pos.color
-        el.style.zIndex = 100
-        el.style.color = '#000'
-        el.style.cursor = 'help'
+    this.marker.update = function(html, markerLayer, session, config) {
+      let start = config.firstRow, end = config.lastRow
+      let cursors = this.cursors
+
+      for (let i = 0; i < cursors.length; i++) {
+        let pos = this.cursors[i]
+        if (pos.row < start) {
+          continue
+        } else if (pos.row > end) {
+          break
+        } else {
+          // compute cursor position on screen
+          // this code is based on ace/layer/marker.js
+          let screenPos = session.documentToScreenPosition(pos.row, pos.column)
+          let aceGutter = document.getElementsByClassName('ace_gutter')[0].offsetWidth
+          let height = config.lineHeight
+          let width = config.characterWidth
+          let top = markerLayer.$getTop(screenPos.row, config)
+          let left = markerLayer.$padding + aceGutter + screenPos.column * width
+
+          // draw cursor and flag
+          let el = document.getElementById(this.self.aceID + '_cursor_' + pos.id)
+          if(el == undefined){
+            el = document.createElement('div')
+            el.id = this.self.aceID + '_cursor_' + pos.id
+            el.className = 'cursor'
+            el.style.position = 'absolute'
+            el.innerHTML = '<div class="cursor-label" style="background: '+pos.color+';top: -1.8em;white-space: nowrap;">'+pos.name+'</div>'
+            this.self.ace.container.appendChild(el)
+          }else{
+            el.style.height = height + 'px'
+            el.style.width = width + 'px'
+            el.style.top = top + 'px'
+            el.style.left = left + 'px'
+            el.style.borderLeft = '2px solid ' + pos.color
+            el.style.zIndex = 100
+            el.style.color = '#000'
+            el.style.cursor = 'help'
+          }
+        }
       }
+
     }
+
+    this.marker.redraw = function() {
+      this.session._signal('changeFrontMarker')
+    }
+
+    this.marker.session = this.ace.getSession()
+    this.marker.session.addDynamicMarker(this.marker, true)
   }
-}
-marker.redraw = function() {
-  this.session._signal('changeFrontMarker')
-}
 
-function updateCursors(ace, cur, cid){
-   if(cur !== undefined && cur.hasOwnProperty('cursor')){
-     let c = cur.cursor
-     let pos = ace.getSession().doc.indexToPosition(c.pos)
+  updateCursors(cur, cid){
+    if(cur !== undefined && cur.hasOwnProperty('cursor')){
+      let c = cur.cursor
+      let pos = this.ace.getSession().doc.indexToPosition(c.pos)
 
-     let curCursor = {row:pos.row, column:pos.column, color:c.color, id:c.id, name:c.name}
+      let curCursor = {row:pos.row, column:pos.column, color:c.color, id:c.id, name:c.name}
 
-     // handle selection
-     if(c.sel){
-        if(markerID[c.id] !== undefined && markerID[c.id].hasOwnProperty('sel') && markerID[c.id].sel !== undefined){
-          ace.session.removeMarker(markerID[c.id].sel)
-          markerID[c.id].sel = undefined
+       // handle selection
+       if(c.sel){
+        if(this.markerID[c.id] !== undefined && this.markerID[c.id].hasOwnProperty('sel') && this.markerID[c.id].sel !== undefined){
+          this.ace.session.removeMarker(this.markerID[c.id].sel)
+          this.markerID[c.id].sel = undefined
         }
 
-        let anchor = ace.getSession().doc.indexToPosition(c.anchor)
-        let head = ace.getSession().doc.indexToPosition(c.head)
+        let anchor = this.ace.getSession().doc.indexToPosition(c.anchor)
+        let head = this.ace.getSession().doc.indexToPosition(c.head)
 
-        let customStyle = document.getElementById('style_'+c.id)
+        let customStyle = document.getElementById('style_' + c.id)
         if(customStyle){
-          customStyle.innerHTML = '.selection-'+c.id+' { position: absolute; z-index: 20; opacity: 0.5; background: '+c.color+'; }'
+          customStyle.innerHTML = '.selection-' + c.id + ' { position: absolute; z-index: 20; opacity: 0.5; background: '+c.color+'; }'
         }else{
           let style = document.createElement('style')
           style.type = 'text/css'
-          style.id = 'style_'+c.id
+          style.id = 'style_' + c.id
           document.getElementsByTagName('head')[0].appendChild(style)
         }
 
-        markerID[c.id] = {id:c.id, sel:ace.session.addMarker(new Range(anchor.row, anchor.column, head.row, head.column), 'selection-' + c.id, 'text')}
-     }else{
-        if(markerID[c.id] !== undefined && markerID[c.id].hasOwnProperty('sel') && markerID[c.id].sel !== undefined){
-          ace.session.removeMarker(markerID[c.id].sel)
-          markerID[c.id].sel = undefined
-        }
-     }
-
-     marker.cursors.push(curCursor)
-   }else{
-      let el = document.getElementById('cursor_'+cid)
-      if(el){
-        el.parentNode.removeChild(el)
-        if(markerID[cid] !== undefined && markerID[cid].hasOwnProperty('sel') && markerID[cid].sel !== undefined){
-          ace.session.removeMarker(markerID[cid].sel)
-          markerID[cid].sel = undefined
+        this.markerID[c.id] = {id:c.id, sel:this.ace.session.addMarker(new Range(anchor.row, anchor.column, head.row, head.column), 'selection-' + c.id, 'text')}
+      }else{
+        if(this.markerID[c.id] !== undefined && this.markerID[c.id].hasOwnProperty('sel') && this.markerID[c.id].sel !== undefined){
+          this.ace.session.removeMarker(this.markerID[c.id].sel)
+          this.markerID[c.id].sel = undefined
         }
       }
-   }
+
+      this.marker.cursors.push(curCursor)
+    }else{
+      let el = document.getElementById(this.aceID + '_cursor_'+cid)
+      if(el){
+        el.parentNode.removeChild(el)
+        if(this.markerID[cid] !== undefined && this.markerID[cid].hasOwnProperty('sel') && this.markerID[cid].sel !== undefined){
+          this.ace.session.removeMarker(this.markerID[cid].sel)
+          this.markerID[cid].sel = undefined
+        }
+      }
+    }
+  }
 }
 
 
@@ -121,26 +138,27 @@ export class AceBinding {
     this.doc = doc
     this.ace = ace
     this.ace.session.getUndoManager().reset()
+    this.aceCursors = new AceCursors(this.ace)
 
-    marker.session = this.ace.getSession()
-    marker.session.addDynamicMarker(marker, true)
 
     this.awareness = awareness
     this._awarenessChange = ({ added, removed, updated }) => {
-      marker.cursors = []
-
+      this.aceCursors.marker.cursors = []
       const states = /** @type {Awareness} */ (this.awareness).getStates()
       added.forEach(id => {
-        updateCursors(this.ace, states.get(id), id)
+        // console.log('added: ' + id)
+        this.aceCursors.updateCursors(states.get(id), id)
       })
       updated.forEach(id => {
-        updateCursors(this.ace, states.get(id), id)
+        // console.log('updated: ' + id)
+        this.aceCursors.updateCursors(states.get(id), id)
       })
       removed.forEach(id => {
-        updateCursors(this.ace, states.get(id), id)
+        // console.log('removed: ' + id)
+        this.aceCursors.updateCursors(states.get(id), id)
       })
 
-      marker.redraw()
+      this.aceCursors.marker.redraw()
     }
 
     this._typeObserver = event => {
