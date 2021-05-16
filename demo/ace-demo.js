@@ -47,9 +47,7 @@ window.addEventListener('load', () => {
     document.getElementById('users').innerHTML = userIcon + userCount + ' users'
   })
 
-
   // Define user name and user name
-  // Check the quill-cursors package on how to change the way cursors are rendered
   provider.awareness.setLocalStateField('user', {
     name: Math.random().toString(36).substring(7),
     color: '#'+Math.floor(Math.random()*16777215).toString(16)

@@ -129,7 +129,7 @@ export class AceBinding {
     this._awarenessChange = ({ added, removed, updated }) => {
       marker.cursors = []
 
-      const states = /** @type {Awareness} */ (awareness).getStates()
+      const states = /** @type {Awareness} */ (this.awareness).getStates()
       added.forEach(id => {
         updateCursors(this.ace, states.get(id), id)
       })
@@ -186,7 +186,7 @@ export class AceBinding {
     this.ace.on('change', this._aceObserver)
 
     this._cursorObserver = () => {
-      let user = awareness.getLocalState().user
+      let user = this.awareness.getLocalState().user
       let curSel = this.ace.getSession().selection
       let cursor = {id:doc.clientID, name:user.name, sel:true, color:user.color}
 
@@ -207,14 +207,14 @@ export class AceBinding {
         cursor.sel = false
       }
 
-      const aw = /** @type {any} */ (awareness.getLocalState())
+      const aw = /** @type {any} */ (this.awareness.getLocalState())
       if (curSel === null) {
-        if (awareness.getLocalState() !== null) {
-          awareness.setLocalStateField('cursor', /** @type {any} */ (null))
+        if (this.awareness.getLocalState() !== null) {
+          this.awareness.setLocalStateField('cursor', /** @type {any} */ (null))
         }
       } else {
         if (!aw || !aw.cursor || cursor.anchor !== aw.cursor.anchor || cursor.head  !== aw.cursor.head) {
-          awareness.setLocalStateField('cursor', cursor)
+          this.awareness.setLocalStateField('cursor', cursor)
         }
       }
     }
@@ -222,8 +222,8 @@ export class AceBinding {
     // update cursors
     this.ace.getSession().selection.on('changeCursor', ()=>this._cursorObserver())
 
-    if (awareness) {
-      awareness.on('change', this._awarenessChange)
+    if (this.awareness) {
+      this.awareness.on('change', this._awarenessChange)
     }
   }
 
