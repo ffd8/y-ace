@@ -38,6 +38,14 @@ window.addEventListener('load', () => {
   // const binding = new Y.AceBinding(ace, type)
   const binding = new AceBinding(type, editor, provider.awareness)
 
+  let user = {
+    name: Math.random().toString(36).substring(7),
+    color: '#'+Math.floor(Math.random()*16777215).toString(16)
+  }
+
+  // Define user name and user name
+  provider.awareness.setLocalStateField('user', user)
+
   provider.awareness.on('change', function(){
     let userCount = provider.awareness.getStates().size
     let userIcon = '👤 '
@@ -47,12 +55,7 @@ window.addEventListener('load', () => {
     document.getElementById('users').innerHTML = userIcon + userCount + ' users'
   })
 
-  // Define user name and user name
-  provider.awareness.setLocalStateField('user', {
-    name: Math.random().toString(36).substring(7),
-    color: '#'+Math.floor(Math.random()*16777215).toString(16)
-  })
-
+  // provider.destroy()
 
   const connectBtn = document.getElementById('y-connect-btn')
   connectBtn.addEventListener('click', () => {
