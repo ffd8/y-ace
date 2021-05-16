@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Yjs Ace Example</title>
+    <style type="text/css">
+      body{
+        margin: 0;
+      }
+      #status{
+        position: fixed;
+        background: #bbb;
+        width: 100px;
+        border: 1px solid #888;
+        right: 10px;
+        top: 10px;
+        z-index: 10;
+        color: #000;
+        font-family: sans-serif;
+        font-size: 10pt;
+        padding: 5px;
+      }
+      #users{
+        border-top: 1px solid #888;
+        margin-top: 5px;
+      }
+      #editor{
+        border: 1px solid #000;
+        height: 500px;
+        width: 100vw;
+        height: 100vh;
+      }
+      .cursor-label{
+        color: #fff;
+        padding: 2px;
+        font-size: 8pt;
+        position: absolute;
+        left: -2px;
+      }
+    </style>
+</head>
+<body>
+  <div id="status">
+    <button type="button" id="y-connect-btn">Disconnect</button>
+    <div id="users"></div>
+  </div>
+  <div id="editor"></div>
+  <script type="text/javascript" src="../dist/ace-demo.js" async></script>
+</body>
+</html>
